@@ -175,25 +175,22 @@
         }
 
         async function encryptMessage() {
+            iv = crypto.getRandomValues(new Uint8Array(16));
+            const keyInput = document.getElementById('keyInputEncrypt').value;
+            if (keyInput.length === 64) {
+                const keyBuffer = hexToArrayBuffer(keyInput);
+                aesKey = await crypto.subtle.importKey(
+                    "raw",
+                    keyBuffer,
+                    { name: "AES-CBC" },
+                    true,
+                    ["encrypt"]
+                );
+            }
             if (!aesKey) {
                 alert('Bitte generiere einen Schlüssel zuerst.');
                 return;
             }
-
-            iv = crypto.getRandomValues(new Uint8Array(16));
-            const keyInput = document.getElementById('keyInputEncrypt').value;
-            if (keyInput.length !== 64) {
-                alert('Der Schlüssel muss 64 hexadezimale Zeichen lang sein.');
-                return;
-            }
-            const keyBuffer = hexToArrayBuffer(keyInput);
-            const encryptionKey = await crypto.subtle.importKey(
-                "raw",
-                keyBuffer,
-                { name: "AES-CBC" },
-                true,
-                ["encrypt"]
-            );
             
             const message = document.getElementById('messageInput').value;
             const encodedMessage = new TextEncoder().encode(message);
@@ -203,7 +200,7 @@
                     name: "AES-CBC",
                     iv: iv
                 },
-                encryptionKey,
+                aesKey,  // Verwende den generierten oder importierten Schlüssel
                 encodedMessage
             );
 
